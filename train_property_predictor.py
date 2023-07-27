@@ -9,7 +9,6 @@ import pandas as pd
 from utils import smiles_to_one_hot
 import math
 
-
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
@@ -58,6 +57,7 @@ props = {
 }
 
 x, y = generate_training_mols(args.num_mols, props[args.prop])
+print("Finished preparing data")
 
 kd_to_delta_g = lambda x: 0.00198720425864083 * 298.15 * math.log(x)
 
