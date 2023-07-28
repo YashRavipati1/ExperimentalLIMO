@@ -8,6 +8,7 @@ from scipy.stats import linregress
 import pandas as pd
 from utils import smiles_to_one_hot
 import math
+from sklearn.model_selection import train_test_split
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -66,18 +67,22 @@ df = pd.read_csv("D9AEC8E22C493F03A1087F8AF468CFD6ki.tsv", sep="\t")
 smiles = df["Ligand SMILES"]
 affinity = df["Ki (nM)"]
 
+smiles_train, smiles_test, affinity_train, affinity_test = train_test_split(
+    smiles, affinity, test_size=0.2, random_state=42
+)
 x_exp = []
 y_exp = []
-for i in range(len(smiles)):
+for i in range(len(smiles_train)):
     one_hots = smiles_to_one_hot(smiles[i])
     x_exp.append(one_hots)
-    x_exp.append(kd_to_delta_g(affinity[i]))
+    y_exp.append(kd_to_delta_g(affinity[i]))
 
 x = torch.cat((x, x_exp), dim=0)
 y = torch.cat((y, y_exp), dim=0)
 
 model = PropertyPredictor(x.shape[1])
-dm = PropDataModule(x[1000:], y[1000:], 100)
+# dm = PropDataModule(x[1000:], y[1000:], 100)
+dm = PropDataModule(smiles_test, affinity_test, 100)
 trainer = pl.Trainer(
     gpus=1,
     max_epochs=5,
